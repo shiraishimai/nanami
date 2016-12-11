@@ -2,7 +2,7 @@
 let Util = require('misa');
 class Seed {
     constructor() {
-        this.__paramInstances = false;    // Disabled
+        this.__paramInstances = void 0;    // Disabled
         this.__param = Array.prototype.slice.call(arguments);
     }
     * [Symbol.iterator]() {
@@ -49,21 +49,67 @@ class Seed {
         this.__paramInstances = []; // Enable paramInstances to store intermediate state of generators
     }
     deactivateParamInstance() {
-        this.__paramInstances = false;  // Disabling & release memory
+        this.__paramInstances = void 0;  // Disabling & release memory
     }
-    static integerGenerator(limit, start) {
+    static integerGenerator(limit = 0, start) {
         return function* () {
             let base = start || 0,
                 i = 0;
             while (i < limit) yield base + i++;
         };
     }
-    static charGenerator(limit, startChar) {
+    static charGenerator(limit = 0, startChar) {
         return function* () {
             let base = startChar && startChar.charCodeAt(0) || 'a'.charCodeAt(0),
                 i = 0;
             while (i < limit) yield String.fromCharCode(base + i++);
         };
+    }
+    static eachSequentialProcess(seed, processDelegate) {
+        if (!Util.isFunction(processDelegate)) return Promise.reject('processDelegate is not a function');
+        let iterator = seed.getIterator && seed.getIterator() || seed[Symbol.iterator](),
+            recursiveExecute = (accumulatedResult = []) => {
+                if (iterator.next().value) {
+                    return seed.applyParamInstances(processDelegate).then(result => {
+                        return accumulatedResult.concat({
+                            'success': true,
+                            'result': result
+                        });
+                    }).catch(error => {
+                        return accumulatedResult.concat({
+                            'success': false,
+                            'result': error
+                        });
+                    }).then(recursiveExecute);
+                }
+                return accumulatedResult;
+            };
+        seed.activateParamInstance();
+        return recursiveExecute().then(result => {
+            seed.deactivateParamInstance();
+            return result;
+        });
+    }
+    static eachBatchProcess(seed, processDelegate) {
+        if (!Util.isFunction(processDelegate)) return Promise.reject('processDelegate is not a function');
+        let iterator = seed.getIterator && seed.getIterator() || seed[Symbol.iterator](),
+            promises = [];
+        seed.activateParamInstance();
+        while (iterator.next().value) {
+            promises.push(seed.applyParamInstances(processDelegate).then(result => {
+                return {
+                    'success': true,
+                    'result': result
+                };
+            }).catch(error => {
+                return {
+                    'success': false,
+                    'result': error
+                };
+            }));
+        }
+        seed.deactivateParamInstance();
+        return Promise.all(promises);
     }
 }
 module.exports = Seed;
