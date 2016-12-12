@@ -1,5 +1,7 @@
 'use strict';
-let Util = require('misa');
+let Util = require('misa'),
+    path = require('path'),
+    fs = require('fs');
 class Seed {
     constructor() {
         this.__paramInstances = void 0;    // Disabled
@@ -110,6 +112,25 @@ class Seed {
         }
         seed.deactivateParamInstance();
         return Promise.all(promises);
+    }
+    static recursiveReadDirPromise(dir, promiseDelegate) {
+        if (!Util.isDirectoryExist(dir)) return promise.reject("[recursiveReadDirPromise] Directory doesn't exist");
+        return new Promise((resolve, reject) => {
+            fs.readdir(dir, (err, list) => {
+                if (err) return reject(err);
+                let promises = [],
+                    target;
+                for (let file of list) {
+                    target = path.resolve(dir, file);
+                    if (Util.isFileExist(target)) {
+                        promises.push(promiseDelegate(target));
+                    } else if (Util.isDirectoryExist(target)) {
+                        promises.push(Seed.recursiveReadDirPromise(target, promiseDelegate));
+                    }
+                }
+                return resolve(Promise.all(promises));
+            });
+        });
     }
 }
 module.exports = Seed;

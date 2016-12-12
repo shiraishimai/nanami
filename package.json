@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "misa": "^1.0.1"
+    "misa": "*"
   },
   "devDependencies": {
     "chai": "^3.5.0",

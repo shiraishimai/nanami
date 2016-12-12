@@ -1,14 +1,5 @@
 let expect = require('chai').expect,
     Nanami = require("./Seed.js");
-// for (let result of new Nanami("This is loop {x}", Nanami.integerGenerator(5))) {
-// for (let result of new Nanami("This is {a} double loop {x}", Nanami.charGenerator(2), Nanami.integerGenerator(3, 1))) {
-//     console.log(result);
-// }
-// let nanamin = new Nanami("file://{a}{x}.dat", Nanami.charGenerator(2, 'm'), Nanami.integerGenerator(3, 1));
-// nanamin.each((result, a, x) => {
-//     console.log(`${result} \ta=${a}\tx=${x}`);
-// });
-
 
 describe('integerGenerator', () => {
     it('with default param', () => {
@@ -321,7 +312,7 @@ describe('Advanced Nanami test', () => {
             return new Promise((resolve, reject) => {
                 let time = Math.ceil(Math.random() * 1000),
                     success = Math.random() < 0.5;
-                console.log(success, time);
+                // console.log(success, time);
                 setTimeout(() => {
                     success ? resolve(i) : reject(i);
                     i++;
@@ -350,18 +341,32 @@ describe('Advanced Nanami test', () => {
             return new Promise((resolve, reject) => {
                 let time = Math.ceil(Math.random() * 1000),
                     success = Math.random() < 0.5;
-                console.log(success, time);
+                // console.log(success, time);
                 setTimeout(() => {
                     success ? resolve(i) : reject(i);
                     i++;
                 }, time);
             });
         }).then(result => {
-            console.log(result);
+            // console.log(result);
             for (let subResult of result) {
                 expect(subResult.result).to.be.below(9);
                 expect(subResult.success).to.be.oneOf([true, false]);
             }
+        }).then(done);
+    });
+});
+describe('Extra Nanami test', () => {
+    let path = require('path');
+    it('recursiveReadDirPromise', done => {
+        Nanami.recursiveReadDirPromise('./', file => {
+            // console.log(file);
+            return Promise.resolve(path.basename(file));
+        }).then(list => {
+            // hierarchy of resolved results
+            list = flatten(list);
+            // console.log(list);
+            expect(list).to.include.members(['readme.md','Seed.js','test.js','misa.js']);
         }).then(done);
     });
 });
@@ -372,6 +377,13 @@ describe("function test", () => {
     it("should have array", () => {
         expect(testArray()).to.be.instanceof(Array);
     });
+    it("promise resolve with promise reject", () => {
+        return testPromise().then(result => {
+            throw new Error('was not supposed to resolve');
+        }).catch(error => {
+            expect(error).to.equal("test");
+        });
+    });
 });
 function testFunction(func) {
     return typeof func;
@@ -380,4 +392,14 @@ function testArray(p = []) {
     return p.concat({
         'success':true
     });
+}
+function testPromise() {
+    return new Promise((resolve, reject) => {
+        return resolve(Promise.reject("test"));
+    });
+}
+function flatten(arr) {
+    return arr.reduce(function (flat, toFlatten) {
+        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+    }, []);
 }
