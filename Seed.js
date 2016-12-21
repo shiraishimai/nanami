@@ -113,8 +113,21 @@ class Seed {
         seed.deactivateParamInstance();
         return Promise.all(promises);
     }
-    static recursiveReadDirPromise(dir, promiseDelegate) {
-        if (!Util.isDirectoryExist(dir)) return promise.reject("[recursiveReadDirPromise] Directory doesn't exist");
+    /**
+     * @param  {[Object]} options         [config]
+     *         @param  {[String]} dir         [directory to execute]
+     *         @param  {[Boolean]} hierarchy=false         [whether to return a hierarchy or flattened array]
+     * @param  {[Function]} promiseDelegate [iteration function]
+     *         @param  {[String]} file [path resolution of file]
+     *         @return {[Promise]}
+     * @return {[Promise]}
+     */
+    static recursiveReadDirPromise(options, promiseDelegate) {
+        if (!_.isObject(options)) return return Promise.reject("[recursiveReadDirPromise] Input error");
+        let dir = options.dir,
+            keepHierarchy = options.hierarchy;
+        if (!dir || !_.isString(dir)) return return Promise.reject("[recursiveReadDirPromise] Input error");
+        if (!Util.isDirectoryExist(dir)) return Promise.reject("[recursiveReadDirPromise] Directory doesn't exist");
         return new Promise((resolve, reject) => {
             fs.readdir(dir, (err, list) => {
                 if (err) return reject(err);
@@ -125,10 +138,12 @@ class Seed {
                     if (Util.isFileExist(target)) {
                         promises.push(promiseDelegate(target));
                     } else if (Util.isDirectoryExist(target)) {
-                        promises.push(Seed.recursiveReadDirPromise(target, promiseDelegate));
+                        promises.push(Seed.recursiveReadDirPromise(_.merge({}, options, {
+                            "dir": target
+                        }), promiseDelegate));
                     }
                 }
-                return resolve(Promise.all(promises));
+                return resolve(Promise.all(promises).then(results => keepHierarchy ? results : _.flattenDeep(results)));
             });
         });
     }
