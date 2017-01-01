@@ -1,5 +1,6 @@
 'use strict';
-let Util = require('misa'),
+let _ = require('lodash'),
+    Util = require('misa'),
     path = require('path'),
     fs = require('fs');
 class Seed {
@@ -17,7 +18,7 @@ class Seed {
                     return;
                 }
                 index = index || 1;
-                let generator = Util.isFunction(param[index]) ? param[index]() : param[index],
+                let generator = _.isFunction(param[index]) ? param[index]() : param[index],
                     nextIteration = function* (seed){
                         yield* iteration(input.replace(/{[^}]*}/, seed), index+1);
                     };
@@ -36,7 +37,7 @@ class Seed {
         return this[Symbol.iterator]();
     }
     each(delegate) {
-        if (!Util.isFunction(delegate)) return;
+        if (!_.isFunction(delegate)) return;
         this.activateParamInstance();
         for (let seed of this[Symbol.iterator]()) {
             delegate.apply(this, this.__paramInstances);
@@ -44,7 +45,7 @@ class Seed {
         this.deactivateParamInstance();
     }
     applyParamInstances(delegate) {
-        if (!Util.isFunction(delegate)) return;
+        if (!_.isFunction(delegate)) return;
         return delegate.apply(this, this.__paramInstances);
     }
     activateParamInstance() {
@@ -68,7 +69,7 @@ class Seed {
         };
     }
     static eachSequentialProcess(seed, processDelegate) {
-        if (!Util.isFunction(processDelegate)) return Promise.reject('processDelegate is not a function');
+        if (!_.isFunction(processDelegate)) return Promise.reject('processDelegate is not a function');
         let iterator = seed.getIterator && seed.getIterator() || seed[Symbol.iterator](),
             recursiveExecute = (accumulatedResult = []) => {
                 if (iterator.next().value) {
@@ -93,7 +94,7 @@ class Seed {
         });
     }
     static eachBatchProcess(seed, processDelegate) {
-        if (!Util.isFunction(processDelegate)) return Promise.reject('processDelegate is not a function');
+        if (!_.isFunction(processDelegate)) return Promise.reject('processDelegate is not a function');
         let iterator = seed.getIterator && seed.getIterator() || seed[Symbol.iterator](),
             promises = [];
         seed.activateParamInstance();
@@ -114,6 +115,8 @@ class Seed {
         return Promise.all(promises);
     }
     /**
+     * options.hierarchy = true will have better performance
+     * 
      * @param  {[Object]} options         [config]
      *         @param  {[String]} dir         [directory to execute]
      *         @param  {[Boolean]} hierarchy=false         [whether to return a hierarchy or flattened array]
