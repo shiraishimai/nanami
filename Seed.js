@@ -123,10 +123,10 @@ class Seed {
      * @return {[Promise]}
      */
     static recursiveReadDirPromise(options, promiseDelegate) {
-        if (!_.isObject(options)) return return Promise.reject("[recursiveReadDirPromise] Input error");
+        if (!_.isObject(options)) return Promise.reject("[recursiveReadDirPromise] Input error");
         let dir = options.dir,
             keepHierarchy = options.hierarchy;
-        if (!dir || !_.isString(dir)) return return Promise.reject("[recursiveReadDirPromise] Input error");
+        if (!dir || !_.isString(dir)) return Promise.reject("[recursiveReadDirPromise] Input error");
         if (!Util.isDirectoryExist(dir)) return Promise.reject("[recursiveReadDirPromise] Directory doesn't exist");
         return new Promise((resolve, reject) => {
             fs.readdir(dir, (err, list) => {
