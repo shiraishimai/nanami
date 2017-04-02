@@ -71,6 +71,13 @@ describe('Basic Nanami test', () => {
             i++;
         }
     });
+    it('next function', () => {
+        let nanami = new Nanami("{string} is a number", Nanami.integerGenerator(3));
+        expect(nanami.next()).to.equal(`0 is a number`);
+        expect(nanami.next()).to.equal(`1 is a number`);
+        expect(nanami.next()).to.equal(`2 is a number`);
+        expect(nanami.next()).to.be.undefined;
+    });
     it('with double loop', () => {
         let nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3)),
             i = 0;
@@ -356,20 +363,21 @@ describe('Advanced Nanami test', () => {
         }).then(done);
     });
 });
-describe('Extra Nanami test', () => {
-    let path = require('path');
-    it('recursiveReadDirPromise', done => {
-        Nanami.recursiveReadDirPromise('./', file => {
-            // console.log(file);
-            return Promise.resolve(path.basename(file));
-        }).then(list => {
-            // hierarchy of resolved results
-            list = flatten(list);
-            // console.log(list);
-            expect(list).to.include.members(['readme.md','Seed.js','test.js','misa.js']);
-        }).then(done);
-    });
-});
+// @TODO test folder?
+// describe('Extra Nanami test', () => {
+//     let path = require('path');
+//     it('recursiveReadDirPromise', done => {
+//         Nanami.recursiveReadDirPromise('./', file => {
+//             // console.log(file);
+//             return Promise.resolve(path.basename(file));
+//         }).then(list => {
+//             // hierarchy of resolved results
+//             list = flatten(list);
+//             // console.log(list);
+//             expect(list).to.include.members(['readme.md','Seed.js','test.js']);
+//         }).then(done);
+//     });
+// });
 describe("function test", () => {
     it("should be a function", () => {
         expect(testFunction((result, foo, bar) => {})).to.equal('function');

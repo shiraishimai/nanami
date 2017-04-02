@@ -54,6 +54,13 @@ class Seed {
     deactivateParamInstance() {
         this.__paramInstances = void 0;  // Disabling & release memory
     }
+    next() {
+        if (!this.iterator) {
+            this.iterator = this[Symbol.iterator]();
+        }
+        let nextIterate = this.iterator.next();
+        return nextIterate && nextIterate.value;
+    }
     static integerGenerator(limit = 0, start) {
         return function* () {
             let base = start || 0,
