@@ -92,7 +92,7 @@ class Seed {
                         });
                     }).then(recursiveExecute);
                 }
-                return accumulatedResult;
+                return Promise.resolve(accumulatedResult);
             };
         seed.activateParamInstance();
         return recursiveExecute().then(result => {
