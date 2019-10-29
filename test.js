@@ -1,15 +1,15 @@
-let expect = require('chai').expect,
+const expect = require('chai').expect,
     Nanami = require("./Seed.js");
 
 describe('integerGenerator', () => {
     it('with default param', () => {
-        let generator = Nanami.integerGenerator(),
+        const generator = Nanami.integerGenerator(),
             result = generator().next().value;
         expect(generator.constructor.name).to.equal('GeneratorFunction');
         expect(result).to.equal(void 0);
     });
     it('returns 3 integers', () => {
-        let iterator = Nanami.integerGenerator(3)();
+        const iterator = Nanami.integerGenerator(3)();
         for (let i = 0, result; i < 3; i++) {
             result = iterator.next().value;
             expect(result).to.be.a('number');
@@ -17,7 +17,7 @@ describe('integerGenerator', () => {
         }
     });
     it('returns 3 integers from 10', () => {
-        let iterator = Nanami.integerGenerator(3, 10)();
+        const iterator = Nanami.integerGenerator(3, 10)();
         for (let i = 0, result; i < 3; i++) {
             result = iterator.next().value;
             expect(result).to.be.a('number');
@@ -27,13 +27,13 @@ describe('integerGenerator', () => {
 });
 describe('charGenerator', () => {
     it('with default param', () => {
-        let generator = Nanami.charGenerator(),
+        const generator = Nanami.charGenerator(),
             result = generator().next().value;
         expect(generator.constructor.name).to.equal('GeneratorFunction');
         expect(result).to.equal(void 0);
     });
     it('returns 3 characters', () => {
-        let iterator = Nanami.charGenerator(3)();
+        const iterator = Nanami.charGenerator(3)();
         for (let i = 'a'.charCodeAt(), result; i < 3; i++) {
             result = iterator.next().value;
             expect(result).to.be.a('string');
@@ -41,7 +41,7 @@ describe('charGenerator', () => {
         }
     });
     it('returns 3 characters from C', () => {
-        let iterator = Nanami.charGenerator(3, 'C')();
+        const iterator = Nanami.charGenerator(3, 'C')();
         for (let i = 'C'.charCodeAt(), result; i < 3; i++) {
             result = iterator.next().value;
             expect(result).to.be.a('string');
@@ -51,8 +51,8 @@ describe('charGenerator', () => {
 });
 describe('Basic Nanami test', () => {
     it('with basic substitution', () => {
-        let nanami = new Nanami("{string} is a number", Nanami.integerGenerator(3)),
-            i = 0;
+        const nanami = new Nanami("{string} is a number", Nanami.integerGenerator(3));
+        let i = 0;
         for (let result of nanami) {
             switch (i) {
                 case 0:
@@ -72,15 +72,15 @@ describe('Basic Nanami test', () => {
         }
     });
     it('next function', () => {
-        let nanami = new Nanami("{string} is a number", Nanami.integerGenerator(3));
+        const nanami = new Nanami("{string} is a number", Nanami.integerGenerator(3));
         expect(nanami.next()).to.equal(`0 is a number`);
         expect(nanami.next()).to.equal(`1 is a number`);
         expect(nanami.next()).to.equal(`2 is a number`);
         expect(nanami.next()).to.be.undefined;
     });
     it('with double loop', () => {
-        let nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3)),
-            i = 0;
+        const nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3));
+        let i = 0;
         for (let result of nanami) {
             switch (i) {
                 case 0:
@@ -122,8 +122,8 @@ describe('Basic Nanami test', () => {
 
 describe('Advanced Nanami test', () => {
     it('inspect iteration', () => {
-        let nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3)),
-            i = 0;
+        const nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3));
+        let i = 0;
         nanami.activateParamInstance();
         for (let iteration of nanami) {
             nanami.applyParamInstances((result, foo, bar) => {
@@ -186,8 +186,8 @@ describe('Advanced Nanami test', () => {
         nanami.deactivateParamInstance();
     });
     it('with each', () => {
-        let nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3)),
-            i = 0;
+        const nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3));
+        let i = 0;
         nanami.each((result, foo, bar) => {
             switch (i) {
                 case 0:
@@ -243,8 +243,41 @@ describe('Advanced Nanami test', () => {
             i++;
         });
     });
+    it('with map', () => {
+        const nanami = new Nanami("{foo}{bar}", Nanami.integerGenerator(2), Nanami.charGenerator(2));
+        let i = 0;
+        const resultArray = nanami.map((result, foo, bar) => {
+            switch (i) {
+                case 0:
+                    expect(result).to.equal('0a');
+                    expect(foo).to.equal(0);
+                    expect(bar).to.equal('a');
+                    break;
+                case 1:
+                    expect(result).to.equal('0b');
+                    expect(foo).to.equal(0);
+                    expect(bar).to.equal('b');
+                    break;
+                case 2:
+                    expect(result).to.equal('1a');
+                    expect(foo).to.equal(1);
+                    expect(bar).to.equal('a');
+                    break;
+                case 3:
+                    expect(result).to.equal('1b');
+                    expect(foo).to.equal(1);
+                    expect(bar).to.equal('b');
+                    break;
+            }
+            expect(result).to.not.have.string('foo');
+            expect(result).to.not.have.string('bar');
+            i++;
+            return result;
+        });
+        expect(resultArray).to.eql(["0a", "0b", "1a", "1b"]);
+    });
     it('getIterator', () => {
-        let nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3)),
+        const nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3)),
             iterator = nanami.getIterator(),
             firstResult = iterator.next();
         expect(firstResult.done).to.be.false;
@@ -257,13 +290,13 @@ describe('Advanced Nanami test', () => {
         expect(iterator.next().value).to.equal('2 is a number and a is a char');
         expect(iterator.next().value).to.equal('2 is a number and b is a char');
         expect(iterator.next().value).to.equal('2 is a number and c is a char');
-        let lastResult = iterator.next();
+        const lastResult = iterator.next();
         expect(lastResult.done).to.be.true;
         expect(lastResult.value).to.equal(void 0);
     });
 
-    let nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3)),
-        sequencePromise;
+    const nanami = new Nanami("{foo} is a number and {bar} is a char", Nanami.integerGenerator(3), Nanami.charGenerator(3));
+    let sequencePromise;
     it('eachSequentialProcess', () => {
         let i = 0;
         sequencePromise = Nanami.eachSequentialProcess(nanami, (result, foo, bar) => {
@@ -363,51 +396,3 @@ describe('Advanced Nanami test', () => {
         }).then(done);
     });
 });
-// @TODO test folder?
-// describe('Extra Nanami test', () => {
-//     let path = require('path');
-//     it('recursiveReadDirPromise', done => {
-//         Nanami.recursiveReadDirPromise('./', file => {
-//             // console.log(file);
-//             return Promise.resolve(path.basename(file));
-//         }).then(list => {
-//             // hierarchy of resolved results
-//             list = flatten(list);
-//             // console.log(list);
-//             expect(list).to.include.members(['readme.md','Seed.js','test.js']);
-//         }).then(done);
-//     });
-// });
-describe("function test", () => {
-    it("should be a function", () => {
-        expect(testFunction((result, foo, bar) => {})).to.equal('function');
-    });
-    it("should have array", () => {
-        expect(testArray()).to.be.instanceof(Array);
-    });
-    it("promise resolve with promise reject", () => {
-        return testPromise().then(result => {
-            throw new Error('was not supposed to resolve');
-        }).catch(error => {
-            expect(error).to.equal("test");
-        });
-    });
-});
-function testFunction(func) {
-    return typeof func;
-}
-function testArray(p = []) {
-    return p.concat({
-        'success':true
-    });
-}
-function testPromise() {
-    return new Promise((resolve, reject) => {
-        return resolve(Promise.reject("test"));
-    });
-}
-function flatten(arr) {
-    return arr.reduce(function (flat, toFlatten) {
-        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
-    }, []);
-}
